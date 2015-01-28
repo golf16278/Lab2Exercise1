@@ -14,6 +14,8 @@ public class MainActivity extends ActionBarActivity {
 
     // expr = the current string to be calculated
     StringBuffer expr;
+    long result = 0;
+    long mem = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +30,11 @@ public class MainActivity extends ActionBarActivity {
         tvExpr.setText(expr.toString());
     }
 
+    public void updateAnsDisplay(){
+        TextView tvAns = (TextView)findViewById(R.id.tvAns);
+        tvAns.setText(Long.toString(result));
+    }
+
     public void recalculate() {
         //Calculate the expression and display the output
 
@@ -36,11 +43,49 @@ public class MainActivity extends ActionBarActivity {
         //reference: http://stackoverflow.com/questions/2206378/how-to-split-a-string-but-also-keep-the-delimiters
         String e = expr.toString();
         String[] tokens = e.split("((?<=\\+)|(?=\\+))|((?<=\\-)|(?=\\-))|((?<=\\*)|(?=\\*))|((?<=/)|(?=/))");
+
+        String op = "";
+
+        if(tokens.length%2 == 1) {
+
+            for (int i = 0; i < tokens.length; i++) {
+
+                if (tokens[i].equals("+") || tokens[i].equals("-") || tokens[i].equals("*") || tokens[i].equals("/")) {
+                    op = tokens[i];
+
+                } else {
+
+                    if(op.equals("+")){
+                        result = result + Long.parseLong(tokens[i]);
+                    }else if(op.equals("-")){
+                        result = result - Long.parseLong(tokens[i]);
+                    }else if(op.equals("*")){
+                        result = result * Long.parseLong(tokens[i]);
+                    }else if(op.equals("/")){
+                        result = result / Long.parseLong(tokens[i]);
+                    }else{
+                        result = Long.parseLong(tokens[i]);
+                    }
+                }
+            }
+
+        }
+
+        updateAnsDisplay();
+
+
+
     }
 
     public void digitClicked(View v) {
         //d = the label of the digit button
         String d = ((TextView)v).getText().toString();
+        if(expr.toString().endsWith("0") && expr.length() == 1){
+            expr.deleteCharAt(0);
+        }
+        if(expr.toString().endsWith("0") && (expr.toString().charAt(expr.length()-2) == '+' || expr.toString().charAt(expr.length()-2) == '-' || expr.toString().charAt(expr.length()-2) == '*' || expr.toString().charAt(expr.length()-2) == '/')){
+            expr.deleteCharAt(expr.length()-1);
+        }
         //append the clicked digit to expr
         expr.append(d);
         //update tvExpr
@@ -53,7 +98,29 @@ public class MainActivity extends ActionBarActivity {
         //IF the last character in expr is not an operator and expr is not "",
         //THEN append the clicked operator and updateExprDisplay,
         //ELSE do nothing
+
+        String d = ((TextView)v).getText().toString();
+        String temp_expr = expr.toString();
+
+        if(!temp_expr.endsWith("+") && !temp_expr.endsWith("-") && !temp_expr.endsWith("*") && !temp_expr.endsWith("/") && !temp_expr.isEmpty() ){
+            expr.append(d);
+            updateExprDisplay();
+        }
     }
+
+    public void equalClicked(View v) {
+
+        recalculate();
+        TextView tvAns = (TextView)findViewById(R.id.tvAns);
+        expr = new StringBuffer(tvAns.getText());
+        result = 0;
+        updateExprDisplay();
+        updateAnsDisplay();
+
+
+    }
+
+
 
     public void ACClicked(View v) {
         //Clear expr and updateExprDisplay
@@ -63,14 +130,54 @@ public class MainActivity extends ActionBarActivity {
         Toast t = Toast.makeText(this.getApplicationContext(),
                 "All cleared", Toast.LENGTH_SHORT);
         t.show();
+        result = 0;
+        updateAnsDisplay();
     }
 
     public void BSClicked(View v) {
         //Remove the last character from expr, and updateExprDisplay
         if (expr.length() > 0) {
             expr.deleteCharAt(expr.length()-1);
+            recalculate();
             updateExprDisplay();
         }
+    }
+
+    public void MPlusClicked(View v){
+        mem = mem + result;
+        String s = "Mem = " + mem;
+        Toast t = Toast.makeText(this.getApplicationContext(),
+                s, Toast.LENGTH_SHORT);
+        t.show();
+
+    }
+
+    public void MMinusClicked(View v){
+        mem = mem - result;
+        String s = "Mem = " + mem;
+        Toast t = Toast.makeText(this.getApplicationContext(),
+                s, Toast.LENGTH_SHORT);
+        t.show();
+
+    }
+
+    public void MRClicked(View v){
+
+
+        expr = new StringBuffer(Long.toString(mem));
+        result = mem;
+        updateExprDisplay();
+        updateAnsDisplay();
+
+    }
+
+    public void MCClicked(View v){
+        mem = 0;
+        String s = "Mem = " + mem;
+        Toast t = Toast.makeText(this.getApplicationContext(),
+                s, Toast.LENGTH_SHORT);
+        t.show();
+
     }
 
     @Override
